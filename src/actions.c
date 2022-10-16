@@ -6,7 +6,7 @@
 /*   By: bfiguet <bfiguet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/10/11 18:14:04 by bfiguet           #+#    #+#             */
-/*   Updated: 2022/10/15 16:36:43 by bfiguet          ###   ########.fr       */
+/*   Updated: 2022/10/16 19:13:15 by bfiguet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,7 @@ void	ft_eat(t_philo *philo)
 	ft_print(data, philo->id, "\033[0;31mis eating\033[m");
 	philo->last_eat = ft_get_time();
 	pthread_mutex_unlock(&(data->mutex_meal));
-	ft_sleep(data->t_sleep, data);
+	ft_sleep(data->t_eat, data);
 	pthread_mutex_lock(&(data->mutex_meal));
 	(philo->nb_meal)++;
 	pthread_mutex_unlock(&(data->mutex_meal));
@@ -40,7 +40,7 @@ void	ft_sleep(long long time, t_data *data)
 	long long	i;
 
 	i = ft_get_time();
-	//pthread_mutex_lock(&(data->mutex_meal));
+	pthread_mutex_lock(&(data->mutex_meal));
 	while ((!((ft_get_time() - i) >= time)) && !(data->is_dead))
 	{
 		pthread_mutex_unlock(&(data->mutex_meal));
@@ -68,11 +68,11 @@ void	*dinner(void *dinner)
 		ft_eat(ph);
 		pthread_mutex_lock(&(data->mutex_meal));
 		ft_print(data, ph->id, "\033[0;34mis sleeping\033[m");
-		//pthread_mutex_unlock(&(data->mutex_meal));
+		pthread_mutex_unlock(&(data->mutex_meal));
 		ft_sleep(data->t_sleep, data);
-        pthread_mutex_lock(&(data->mutex_meal));
-        ft_print(data, data->philo->id, "\033[0;33mis thinking\033[m"); 
-        i++;
+		pthread_mutex_lock(&(data->mutex_meal));
+		ft_print(data, data->philo->id, "\033[0;33mis thinking\033[m");
+		i++;
 	}
 	pthread_mutex_unlock(&(data->mutex_meal));
 	return (NULL);
@@ -85,9 +85,9 @@ void	ft_check_death(int i, t_data *data, t_philo *ph)
 		pthread_mutex_lock(&(data->mutex_meal));
 		if ((ft_get_time() - ph[i].last_eat) >= data->t_die)
 		{
-            ft_print(data, i + 1, "\033[7;31mis dead\033[m");
-		    data->is_dead = 1;
-        }
+			ft_print(data, i + 1, "\033[7;31mis dead\033[m");
+			data->is_dead = 1;
+		}
 		pthread_mutex_unlock(&(data->mutex_meal));
 		usleep(100);
 	}

@@ -6,26 +6,27 @@
 /*   By: bfiguet <bfiguet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/10/11 18:13:49 by bfiguet           #+#    #+#             */
-/*   Updated: 2022/10/15 15:59:01 by bfiguet          ###   ########.fr       */
+/*   Updated: 2022/10/16 19:13:28 by bfiguet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../inc/philo.h"
 
-void    ft_print(t_data *data, int nb, char *s)
+void	ft_print(t_data *data, int nb, char *s)
 {
-    pthread_mutex_lock(&(data->mutex_msg));
-    if (!(data->is_dead))
-        printf("\033[0;35m%4lli ms \033[m \033[1;36m%i \033[m%s\n", ft_get_time() - data->start_time, nb, s);
-    pthread_mutex_unlock(&(data->mutex_msg));
+	pthread_mutex_lock(&(data->mutex_msg));
+	if (!(data->is_dead))
+		printf("\033[0;35m%4lli ms \033[m \033[1;36m%i \033[m%s\n",
+			ft_get_time() - data->start_time, nb, s);
+	pthread_mutex_unlock(&(data->mutex_msg));
 }
 
-void    ft_error(char *s)
+void	ft_error(char *s)
 {
-    write(1, "Error\n", 6);
-    write(1, s, ft_strlen(s));
-    write(1, "\n", 1);
-    exit(0);
+	write(1, "Error\n", 6);
+	write(1, s, ft_strlen(s));
+	write(1, "\n", 1);
+	exit(0);
 }
 
 int	ft_strlen(char *str)
