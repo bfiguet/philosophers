@@ -6,7 +6,7 @@
 /*   By: bfiguet <bfiguet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/10/11 18:14:04 by bfiguet           #+#    #+#             */
-/*   Updated: 2022/10/16 19:13:15 by bfiguet          ###   ########.fr       */
+/*   Updated: 2022/10/17 15:45:31 by bfiguet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -105,8 +105,8 @@ void	ft_is_dead(t_data *data, t_philo *ph)
 			break ;
 		i = 0;
 		pthread_mutex_lock(&(data->mutex_meal));
-		while (data->t_die != -1 && i < data->nb_philo
-			&& ph[i].nb_meal >= data->t_die)
+		while (data->t_must_eat != -1 && i < data->nb_philo
+			&& ph[i].nb_meal >= data->t_must_eat)
 			i++;
 		if (i == data->nb_philo)
 			data->all_ate = 1;

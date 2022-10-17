@@ -6,7 +6,7 @@
 /*   By: bfiguet <bfiguet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/10/11 18:20:53 by bfiguet           #+#    #+#             */
-/*   Updated: 2022/10/16 19:10:48 by bfiguet          ###   ########.fr       */
+/*   Updated: 2022/10/17 15:44:28 by bfiguet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,7 +49,7 @@ int	ft_init(t_data *data)
 
 void	ft_check_arg(int ac, char **av)
 {
-	if (ac > 5 || ac > 6)
+	if (ac < 5 || ac > 6)
 		ft_error("./philo need at least 5 args and 6 max");
 	if (ft_isdigit(ac, av) == -1)
 		ft_error("Please enter only digits in arguments");
