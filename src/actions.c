@@ -5,111 +5,78 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: bfiguet <bfiguet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2022/10/11 18:14:04 by bfiguet           #+#    #+#             */
-/*   Updated: 2022/10/17 15:45:31 by bfiguet          ###   ########.fr       */
+/*   Created: 2022/10/17 20:51:44 by bfiguet           #+#    #+#             */
+/*   Updated: 2022/11/02 13:13:10 by bfiguet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../inc/philo.h"
 
-void	ft_eat(t_philo *philo)
+int	ft_is_dead(t_philo *philo)
 {
-	t_data	*data;
-
-	data = philo->philo_data;
-	pthread_mutex_lock(&(data->mutex_forks[philo->left_f]));
-	pthread_mutex_lock(&(data->mutex_meal));
-	ft_print(data, philo->id, "\033[0;32mhas taken a left for\033[m");
-	pthread_mutex_unlock(&(data->mutex_meal));
-	pthread_mutex_lock(&(data->mutex_forks[philo->right_f]));
-	pthread_mutex_lock(&(data->mutex_meal));
-	ft_print(data, philo->id, "\033[0;32mhas taken a right for\033[m");
-	ft_print(data, philo->id, "\033[0;31mis eating\033[m");
-	philo->last_eat = ft_get_time();
-	pthread_mutex_unlock(&(data->mutex_meal));
-	ft_sleep(data->t_eat, data);
-	pthread_mutex_lock(&(data->mutex_meal));
-	(philo->nb_meal)++;
-	pthread_mutex_unlock(&(data->mutex_meal));
-	pthread_mutex_unlock(&(data->mutex_forks[philo->right_f]));
-	pthread_mutex_unlock(&(data->mutex_forks[philo->left_f]));
+	if (pthread_mutex_lock(philo->data->mutex_msg))
+		return (ft_error(LOCK_ERR, NULL));
+	printf("\033[0;35m%zu ms \033[m \033[1;36m%zu \033[m%s\n",
+		ft_time() - philo->data->start_time, philo->id, DIED);
+	if (pthread_mutex_unlock(philo->data->mutex_msg))
+		return (ft_error(UNLOCK_ERR, NULL));
+	return (0);
 }
 
-void	ft_sleep(long long time, t_data *data)
+int	ft_eat(t_philo *philo)
 {
-	long long	i;
-
-	i = ft_get_time();
-	pthread_mutex_lock(&(data->mutex_meal));
-	while ((!((ft_get_time() - i) >= time)) && !(data->is_dead))
-	{
-		pthread_mutex_unlock(&(data->mutex_meal));
-		usleep(50);
-		pthread_mutex_lock(&(data->mutex_meal));
-	}
-	pthread_mutex_unlock(&(data->mutex_meal));
+	if (pthread_mutex_lock(philo->mutex_meal))
+		return (ft_print(philo, ERROR, LOCK_ERR));
+	philo->last_meal = ft_time();
+	if (pthread_mutex_unlock(philo->mutex_meal))
+		return (ft_print(philo, ERROR, UNLOCK_ERR));
+	if ((ft_print(philo, PHILO, EAT) || ft_wait(philo->data->t_eat,
+				philo->data->t_die)))
+		return (1);
+	return (0);
 }
 
-void	*dinner(void *dinner)
+t_fork	*ft_take_fork(t_philo *philo)
 {
-	t_philo		*ph;
-	t_data		*data;
-	int			i;
-
-	i = 0;
-	ph = (t_philo *)dinner;
-	data = ph->philo_data;
-	if (ph->id % 2 == 0)
-		usleep(1500);
-	pthread_mutex_lock(&(data->mutex_meal));
-	while (!(data->is_dead) && !(data->all_ate))
-	{
-		pthread_mutex_unlock(&(data->mutex_meal));
-		ft_eat(ph);
-		pthread_mutex_lock(&(data->mutex_meal));
-		ft_print(data, ph->id, "\033[0;34mis sleeping\033[m");
-		pthread_mutex_unlock(&(data->mutex_meal));
-		ft_sleep(data->t_sleep, data);
-		pthread_mutex_lock(&(data->mutex_meal));
-		ft_print(data, data->philo->id, "\033[0;33mis thinking\033[m");
-		i++;
-	}
-	pthread_mutex_unlock(&(data->mutex_meal));
-	return (NULL);
+	if (philo->id % 2 == 0)
+		return (philo->left_f);
+	else
+		return (philo->right_f);
 }
 
-void	ft_check_death(int i, t_data *data, t_philo *ph)
+int	ft_end_fork(t_philo *philo, t_fork *fork)
 {
-	while (++i < data->nb_philo && !(data->is_dead))
+	if (pthread_mutex_unlock(fork->mutex_fork))
+		return (ft_print(philo, ERROR, UNLOCK_ERR));
+	if (philo->data->nb_philo == 1)
+		return (1);
+	return (0);
+}
+
+int	ft_forks(t_philo *philo, t_fork *fork)
+{
+	int		i;
+	t_fork	*f;
+
+	i = 3;
+	f = fork;
+	while (--i)
 	{
-		pthread_mutex_lock(&(data->mutex_meal));
-		if ((ft_get_time() - ph[i].last_eat) >= data->t_die)
+		if (pthread_mutex_lock(f->mutex_fork))
+			return (ft_print(philo, ERROR, LOCK_ERR));
+		if (philo->id == f->last_philo)
 		{
-			ft_print(data, i + 1, "\033[7;31mis dead\033[m");
-			data->is_dead = 1;
+			if (ft_end_fork(philo, f))
+				return (1);
 		}
-		pthread_mutex_unlock(&(data->mutex_meal));
-		usleep(100);
+		f->last_philo = philo->id;
+		if (ft_print(philo, PHILO, FORK) || (philo->data->nb_philo == 1
+				&& ft_end_fork(philo, f)))
+			return (1);
+		if (philo->id % 2 == 0)
+			f = philo->right_f;
+		else
+			f = philo->left_f;
 	}
-}
-
-void	ft_is_dead(t_data *data, t_philo *ph)
-{
-	int	i;
-
-	while (!(data->all_ate))
-	{
-		i = -1;
-		ft_check_death(i, data, ph);
-		if (data->is_dead)
-			break ;
-		i = 0;
-		pthread_mutex_lock(&(data->mutex_meal));
-		while (data->t_must_eat != -1 && i < data->nb_philo
-			&& ph[i].nb_meal >= data->t_must_eat)
-			i++;
-		if (i == data->nb_philo)
-			data->all_ate = 1;
-		pthread_mutex_unlock(&(data->mutex_meal));
-	}
+	return (0);
 }

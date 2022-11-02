@@ -5,72 +5,84 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: bfiguet <bfiguet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2022/10/11 18:13:49 by bfiguet           #+#    #+#             */
-/*   Updated: 2022/10/16 19:13:28 by bfiguet          ###   ########.fr       */
+/*   Created: 2022/10/17 19:50:30 by bfiguet           #+#    #+#             */
+/*   Updated: 2022/11/02 13:19:14 by bfiguet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../inc/philo.h"
 
-void	ft_print(t_data *data, int nb, char *s)
+int	ft_error(char *s, t_data *data)
 {
-	pthread_mutex_lock(&(data->mutex_msg));
-	if (!(data->is_dead))
-		printf("\033[0;35m%4lli ms \033[m \033[1;36m%i \033[m%s\n",
-			ft_get_time() - data->start_time, nb, s);
-	pthread_mutex_unlock(&(data->mutex_msg));
+	if (s)
+		printf("Error: %s\n", s);
+	if (data)
+		ft_exit(data);
+	return (1);
 }
 
-void	ft_error(char *s)
+int	ft_print(t_philo *philo, int flag, char *s)
 {
-	write(1, "Error\n", 6);
-	write(1, s, ft_strlen(s));
-	write(1, "\n", 1);
-	exit(0);
+	if (pthread_mutex_lock(philo->data->mutex_msg))
+		return (ft_error(LOCK_ERR, NULL));
+	if (flag == ERROR)
+		ft_error(s, NULL);
+	else
+	{
+		if (pthread_mutex_lock(philo->data->mutex_end))
+			return (ft_error(LOCK_ERR, NULL));
+		if (!philo->data->end)
+			printf("\033[0;35m%zu ms \033[m \033[1;36m%zu \033[m%s", \
+				ft_time() - philo->data->start_time, philo->id, s);
+		if (pthread_mutex_unlock(philo->data->mutex_end))
+			return (ft_error(UNLOCK_ERR, NULL));
+	}
+	if (pthread_mutex_unlock(philo->data->mutex_msg))
+		return (ft_error(UNLOCK_ERR, NULL));
+	if (flag == ERROR)
+		return (1);
+	return (0);
+}
+
+int	ft_wait(size_t i, size_t die)
+{
+	size_t	begin;
+	size_t	now;
+	size_t	end;
+
+	end = ft_time() + i;
+	now = ft_time();
+	begin = now;
+	while (now < end)
+	{
+		usleep(100);
+		now = ft_time();
+		if (now - begin > die)
+			return (1);
+	}
+	return (0);
 }
 
 int	ft_strlen(char *str)
 {
 	int	i;
-
+	
 	i = 0;
-	while (str[i])
+	while(str && str[i])
 		i++;
 	return (i);
 }
 
-int	ft_atoi(char *str)
+int	ft_atoi(char *av, size_t *res)
 {
-	int	num;
-	int	i;
-
-	i = 0;
-	num = 0;
-	while (str[i] >= '0' && str[i] <= '9')
-	{
-		num = num * 10 + (str[i] - 48);
-		i++;
-	}
-	return (num);
-}
-
-int	ft_isdigit(int argc, char **argv)
-{
-	int	i;
-	int	j;
-
-	i = 1;
-	j = 0;
-	while (i < argc)
-	{
-		while (argv[i][j])
-		{
-			if (argv[i][j] < '0' || argv[i][j] > '9')
-				return (-1);
-			j++;
-		}
-		j = 0;
-		i++;
-	}
+	*res = 0;
+	if (ft_strlen(av) == 0)
+		return (1);
+	while (*av >= '0' && *av <= '9')
+		*res = *res * 10 + (*av++ - 48);
+	if (*av)
+		return (1);
 	return (0);
 }
+
+
