@@ -111,6 +111,7 @@ int	main(int ac, char **av)
 	t_data	data;
 	size_t	i;
 
+	////data = (t_data){0}; // remplace memset
 	memset(&data, 0, sizeof(t_data));
 	if (ft_parse(&data, ac, av))
 		return (1);
