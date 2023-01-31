@@ -34,14 +34,8 @@ int	ft_is_end(t_philo *philo, int after_eat)
 
 void	ft_clean_mtx(pthread_mutex_t *mtx)
 {
-	int	m;
-
 	if (mtx)
-	{
-		m = pthread_mutex_destroy(mtx);
-		if (m)
-			ft_error(MUTEX_ERR, NULL);
-	}
+		pthread_mutex_destroy(mtx);
 	free(mtx);
 }
 
