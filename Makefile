@@ -15,7 +15,7 @@
 NAME	= philo
 HEADER	= inc/philo.h
 CC		= gcc
-CFLAGS	= -Wall -Wextra -Werror -g -fsanitize=thread
+CFLAGS	= -Wall -Wextra -Werror -g #-fsanitize=thread
 LFLAGS	= -pthread
 #CFLAGS += -Iinc/
 #CFLAGS += -g3 -fsanitize=address
