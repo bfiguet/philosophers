@@ -10,7 +10,7 @@ Each action of a philosopher must be output like this: timestamp_in_ms X has tak
 
 ## How to test philo :
 
-Just do ./make
+Just do make
 and execute with ./philo [arg1] [arg2] [arg3] [arg4] [arg5 (optionnel)]
 
 ◦ [number_of_philosophers] : is the number of philosophers and also the number of forks.
